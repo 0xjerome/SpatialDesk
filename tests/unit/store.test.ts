@@ -105,7 +105,11 @@ describe('WorkspaceStore persistence', () => {
     a.createResearch({ title: 'src', url: 'example.com', tags: ['x'] });
 
     const b = makeStore(storage);
-    expect(b.tasks.value[0]).toMatchObject({ title: 'persisted', projectId: p.value.id, dueDate: '2026-05-05' });
+    expect(b.tasks.value[0]).toMatchObject({
+      title: 'persisted',
+      projectId: p.value.id,
+      dueDate: '2026-05-05',
+    });
     expect(b.notes.value[0]?.body).toBe('hello\nworld');
     expect(b.research.value[0]?.url).toBe('https://example.com/');
     expect(b.projects.value[0]?.color).toBe('teal');

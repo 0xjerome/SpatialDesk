@@ -127,7 +127,10 @@ export function createApp(options = {}) {
   async function handleAssist(req, res) {
     if (!assistant.configured) {
       sendJson(res, 503, {
-        error: { code: 'not_configured', message: 'The AI assistant is not configured on this server.' },
+        error: {
+          code: 'not_configured',
+          message: 'The AI assistant is not configured on this server.',
+        },
       });
       return;
     }
@@ -140,7 +143,9 @@ export function createApp(options = {}) {
       body = await readJson(req);
     } catch (error) {
       const status = error instanceof PayloadTooLarge ? 413 : 400;
-      sendJson(res, status, { error: { code: 'bad_request', message: /** @type {Error} */ (error).message } });
+      sendJson(res, status, {
+        error: { code: 'bad_request', message: /** @type {Error} */ (error).message },
+      });
       return;
     }
     const parsed = AssistRequest.safeParse(body);
@@ -159,7 +164,10 @@ export function createApp(options = {}) {
     if (!verdict.allowed) {
       res.setHeader('Retry-After', String(Math.ceil(verdict.retryAfterMs / 1000)));
       sendJson(res, 429, {
-        error: { code: 'rate_limited', message: 'Too many assistant requests. Please wait a moment.' },
+        error: {
+          code: 'rate_limited',
+          message: 'Too many assistant requests. Please wait a moment.',
+        },
       });
       return;
     }
@@ -175,7 +183,9 @@ export function createApp(options = {}) {
         sendJson(res, error.status, { error: { code: error.code, message: error.message } });
       } else {
         console.error('[api/ai/assist] unexpected failure', error);
-        sendJson(res, 500, { error: { code: 'provider_error', message: 'Unexpected server error.' } });
+        sendJson(res, 500, {
+          error: { code: 'provider_error', message: 'Unexpected server error.' },
+        });
       }
     } finally {
       req.off('close', onClose);
@@ -228,7 +238,8 @@ export function createApp(options = {}) {
   const server = createServer((req, res) => {
     handle(req, res).catch((error) => {
       console.error('[server] request failed', error);
-      if (!res.headersSent) sendJson(res, 500, { error: { code: 'server_error', message: 'Server error.' } });
+      if (!res.headersSent)
+        sendJson(res, 500, { error: { code: 'server_error', message: 'Server error.' } });
       else res.end();
     });
   });

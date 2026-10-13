@@ -1,0 +1,10 @@
+{
+  "name": "SpatialDesk AI",
+  "short_name": "SpatialDesk",
+  "description": "A spatial workspace for tasks, notes, projects and research on Meta Quest and in the browser.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "icons": [{ "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

@@ -1,0 +1,81 @@
+<!--
+  Main workspace panel. Row slots row-0..row-5 are filled at runtime by
+  WorkspacePanelSystem; every interactive element has a stable id.
+  Numeric sizes are UIKit units (cm before the scene node scale is applied).
+-->
+<style>
+  .root { flex-direction: column; width: 560px; padding-top: 18px; padding-bottom: 18px; padding-left: 20px; padding-right: 20px; gap: 12px; background-color: #121a33; border-radius: 18px; }
+  .header { flex-direction: row; align-items: center; justify-content: space-between; }
+  .title { font-size: 24px; font-weight: 700; color: #f1f4ff; }
+  .subtitle { font-size: 13px; color: #9aa6cc; }
+  .tabs { flex-direction: row; gap: 8px; }
+  .tab { padding-top: 10px; padding-bottom: 10px; padding-left: 14px; padding-right: 14px; border-radius: 10px; background-color: #1d2747; cursor: pointer; }
+  .tab:hover { background-color: #2a3661; }
+  .tab-label { font-size: 15px; font-weight: 600; color: #c8d0f0; }
+  .tab-active { background-color: #5c6cff; }
+  .tab-active-label { color: #0b1020; }
+  .quick { flex-direction: row; gap: 8px; align-items: center; }
+  .quick-input { flex-grow: 1; }
+  .list { flex-direction: column; gap: 6px; }
+  .row { flex-direction: row; align-items: center; gap: 10px; padding-top: 10px; padding-bottom: 10px; padding-left: 12px; padding-right: 12px; border-radius: 10px; background-color: #1a2342; cursor: pointer; }
+  .row:hover { background-color: #26315a; }
+  .row-selected { border-width: 2px; border-color: #7c8cff; }
+  .toggle { width: 30px; height: 30px; border-radius: 15px; border-width: 2px; border-color: #7c8cff; align-items: center; justify-content: center; cursor: pointer; }
+  .toggle:hover { background-color: #2a3661; }
+  .toggle-label { font-size: 16px; font-weight: 700; color: #7c8cff; }
+  .row-text { flex-direction: column; flex-grow: 1; gap: 2px; }
+  .row-title { font-size: 16px; font-weight: 600; color: #f1f4ff; }
+  .row-meta { font-size: 12px; color: #9aa6cc; }
+  .footer { flex-direction: row; align-items: center; justify-content: space-between; }
+  .pager { flex-direction: row; align-items: center; gap: 8px; }
+  .page-label { font-size: 13px; color: #9aa6cc; }
+  .status { font-size: 13px; color: #9aa6cc; }
+  .status-row { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }
+  .actions { flex-direction: row; gap: 8px; }
+</style>
+<Panel class="root">
+  <div class="header">
+    <div style="flex-direction: column;">
+      <span id="title" class="title">SpatialDesk</span>
+      <span id="subtitle" class="subtitle">Loading workspace</span>
+    </div>
+    <div class="actions">
+      <Button id="voice-button" size="sm" variant="secondary"><ButtonLabel>Voice</ButtonLabel></Button>
+      <Button id="exit-button" size="sm" variant="secondary"><ButtonLabel>Exit</ButtonLabel></Button>
+    </div>
+  </div>
+  <div class="tabs">
+    <div id="tab-home" class="tab tab-active"><span id="tab-home-label" class="tab-label tab-active-label">Home</span></div>
+    <div id="tab-tasks" class="tab"><span id="tab-tasks-label" class="tab-label">Tasks</span></div>
+    <div id="tab-notes" class="tab"><span id="tab-notes-label" class="tab-label">Notes</span></div>
+    <div id="tab-projects" class="tab"><span id="tab-projects-label" class="tab-label">Projects</span></div>
+    <div id="tab-research" class="tab"><span id="tab-research-label" class="tab-label">Research</span></div>
+  </div>
+  <div id="quick" class="quick">
+    <Input id="quick-input" class="quick-input" size="sm" placeholder="New task"></Input>
+    <Button id="quick-add" size="sm" variant="primary"><ButtonLabel>Add</ButtonLabel></Button>
+  </div>
+  <div class="list">
+    <div id="row-0" class="row"><div id="row-0-toggle" class="toggle"><span id="row-0-toggle-label" class="toggle-label">-</span></div><div class="row-text"><span id="row-0-title" class="row-title">-</span><span id="row-0-meta" class="row-meta">-</span></div></div>
+    <div id="row-1" class="row"><div id="row-1-toggle" class="toggle"><span id="row-1-toggle-label" class="toggle-label">-</span></div><div class="row-text"><span id="row-1-title" class="row-title">-</span><span id="row-1-meta" class="row-meta">-</span></div></div>
+    <div id="row-2" class="row"><div id="row-2-toggle" class="toggle"><span id="row-2-toggle-label" class="toggle-label">-</span></div><div class="row-text"><span id="row-2-title" class="row-title">-</span><span id="row-2-meta" class="row-meta">-</span></div></div>
+    <div id="row-3" class="row"><div id="row-3-toggle" class="toggle"><span id="row-3-toggle-label" class="toggle-label">-</span></div><div class="row-text"><span id="row-3-title" class="row-title">-</span><span id="row-3-meta" class="row-meta">-</span></div></div>
+    <div id="row-4" class="row"><div id="row-4-toggle" class="toggle"><span id="row-4-toggle-label" class="toggle-label">-</span></div><div class="row-text"><span id="row-4-title" class="row-title">-</span><span id="row-4-meta" class="row-meta">-</span></div></div>
+    <div id="row-5" class="row"><div id="row-5-toggle" class="toggle"><span id="row-5-toggle-label" class="toggle-label">-</span></div><div class="row-text"><span id="row-5-title" class="row-title">-</span><span id="row-5-meta" class="row-meta">-</span></div></div>
+  </div>
+  <div class="footer">
+    <div class="pager">
+      <Button id="page-prev" size="sm" variant="secondary"><ButtonLabel>Prev</ButtonLabel></Button>
+      <span id="page-label" class="page-label">Page 1 of 1</span>
+      <Button id="page-next" size="sm" variant="secondary"><ButtonLabel>Next</ButtonLabel></Button>
+    </div>
+    <Button id="filter-button" size="sm" variant="secondary"><ButtonLabel id="filter-label">Open</ButtonLabel></Button>
+  </div>
+  <div class="status-row">
+    <span id="status" class="status">Ready</span>
+    <div id="voice-actions" class="actions" style="display: none;">
+      <Button id="voice-confirm" size="sm" variant="primary"><ButtonLabel>Confirm</ButtonLabel></Button>
+      <Button id="voice-cancel" size="sm" variant="secondary"><ButtonLabel>Cancel</ButtonLabel></Button>
+    </div>
+  </div>
+</Panel>

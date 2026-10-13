@@ -98,7 +98,9 @@ export function buildAssistRequest(request) {
           'Do not repeat work that already exists as a task.',
           '',
           `Project: ${request.input.project.name}`,
-          request.input.project.description ? `Description: ${request.input.project.description}` : '',
+          request.input.project.description
+            ? `Description: ${request.input.project.description}`
+            : '',
           request.input.existingTasks.length
             ? `Existing tasks:\n${request.input.existingTasks.map((t) => `- ${t}`).join('\n')}`
             : 'Existing tasks: none',
@@ -167,7 +169,11 @@ export function createAssistant(options = {}) {
         throw new AssistantError('provider_error', 'The assistant declined this request.', 502);
       }
       if (response.stop_reason === 'max_tokens') {
-        throw new AssistantError('invalid_output', 'The assistant response was cut off. Try with less material.', 502);
+        throw new AssistantError(
+          'invalid_output',
+          'The assistant response was cut off. Try with less material.',
+          502,
+        );
       }
       const text = response.content
         .filter((block) => block.type === 'text')
@@ -182,7 +188,11 @@ export function createAssistant(options = {}) {
       }
       const parsed = schema.safeParse(json);
       if (!parsed.success) {
-        throw new AssistantError('invalid_output', 'The assistant returned data in an unexpected shape.', 502);
+        throw new AssistantError(
+          'invalid_output',
+          'The assistant returned data in an unexpected shape.',
+          502,
+        );
       }
       return {
         action: request.action,
@@ -204,10 +214,18 @@ export function createAssistant(options = {}) {
 export function mapProviderError(error) {
   if (error instanceof AssistantError) return error;
   if (error instanceof Anthropic.AuthenticationError) {
-    return new AssistantError('auth', 'The server AI credentials were rejected by the provider.', 502);
+    return new AssistantError(
+      'auth',
+      'The server AI credentials were rejected by the provider.',
+      502,
+    );
   }
   if (error instanceof Anthropic.RateLimitError) {
-    return new AssistantError('rate_limited', 'The AI provider is rate limiting requests. Try again shortly.', 429);
+    return new AssistantError(
+      'rate_limited',
+      'The AI provider is rate limiting requests. Try again shortly.',
+      429,
+    );
   }
   if (error instanceof Anthropic.BadRequestError) {
     return new AssistantError('bad_request', 'The AI provider rejected the request.', 502);
@@ -219,7 +237,11 @@ export function mapProviderError(error) {
     return new AssistantError('provider_error', 'Could not reach the AI provider.', 502);
   }
   if (error instanceof Anthropic.APIError) {
-    return new AssistantError('provider_error', `AI provider error (${error.status ?? 'unknown'}).`, 502);
+    return new AssistantError(
+      'provider_error',
+      `AI provider error (${error.status ?? 'unknown'}).`,
+      502,
+    );
   }
   if (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError') {
     return new AssistantError('timeout', 'The request was cancelled.', 499);

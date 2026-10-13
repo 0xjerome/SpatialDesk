@@ -1,0 +1,22 @@
+<!-- Detail panel: shows the selected task, note, project or research item. -->
+<style>
+  .root { flex-direction: column; width: 420px; padding-top: 18px; padding-bottom: 18px; padding-left: 20px; padding-right: 20px; gap: 12px; background-color: #121a33; border-radius: 18px; }
+  .kind { font-size: 12px; font-weight: 700; color: #7c8cff; }
+  .title { font-size: 22px; font-weight: 700; color: #f1f4ff; }
+  .meta { font-size: 13px; color: #9aa6cc; }
+  .body { font-size: 14px; color: #d7ddf5; }
+  .actions { flex-direction: row; gap: 8px; }
+  .hint { font-size: 13px; color: #6f7aa3; }
+</style>
+<Panel class="root">
+  <span id="kind" class="kind">DETAIL</span>
+  <span id="title" class="title">Nothing selected</span>
+  <span id="meta" class="meta"></span>
+  <span id="body" class="body">Select an item in the workspace panel to see it here. Pinch the bar above a panel to move it.</span>
+  <div class="actions">
+    <Button id="primary-action" size="sm" variant="primary" style="display: none;"><ButtonLabel id="primary-label">Complete</ButtonLabel></Button>
+    <Button id="secondary-action" size="sm" variant="secondary" style="display: none;"><ButtonLabel id="secondary-label">Open project</ButtonLabel></Button>
+    <Button id="close-action" size="sm" variant="secondary" style="display: none;"><ButtonLabel>Close</ButtonLabel></Button>
+  </div>
+  <span id="hint" class="hint">Pinch to select. Grab the bar to move. Say "Exit" or press Exit to return.</span>
+</Panel>

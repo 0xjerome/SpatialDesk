@@ -1,12 +1,51 @@
 import { describe, expect, it } from 'vitest';
-import { collectTags, filterTasks, isOverdue, projectProgress, searchNotes, searchResearch, sortTasks } from '../../src/domain/queries';
+import {
+  collectTags,
+  filterTasks,
+  isOverdue,
+  projectProgress,
+  searchNotes,
+  searchResearch,
+  sortTasks,
+} from '../../src/domain/queries';
 import type { Note, Project, ResearchItem, Task } from '../../src/domain/types';
 
-const base = { description: '', projectId: null, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', completedAt: null };
+const base = {
+  description: '',
+  projectId: null,
+  createdAt: '2026-01-01T00:00:00Z',
+  updatedAt: '2026-01-01T00:00:00Z',
+  completedAt: null,
+};
 const tasks: Task[] = [
-  { ...base, id: '1', title: 'Alpha', status: 'todo', priority: 'low', dueDate: '2026-01-10', createdAt: '2026-01-03T00:00:00Z' },
-  { ...base, id: '2', title: 'Bravo', status: 'done', priority: 'high', dueDate: null, createdAt: '2026-01-02T00:00:00Z' },
-  { ...base, id: '3', title: 'Charlie', status: 'in_progress', priority: 'medium', dueDate: '2026-01-05', projectId: 'p', createdAt: '2026-01-01T00:00:00Z' },
+  {
+    ...base,
+    id: '1',
+    title: 'Alpha',
+    status: 'todo',
+    priority: 'low',
+    dueDate: '2026-01-10',
+    createdAt: '2026-01-03T00:00:00Z',
+  },
+  {
+    ...base,
+    id: '2',
+    title: 'Bravo',
+    status: 'done',
+    priority: 'high',
+    dueDate: null,
+    createdAt: '2026-01-02T00:00:00Z',
+  },
+  {
+    ...base,
+    id: '3',
+    title: 'Charlie',
+    status: 'in_progress',
+    priority: 'medium',
+    dueDate: '2026-01-05',
+    projectId: 'p',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
 ];
 
 describe('filterTasks', () => {
@@ -34,7 +73,15 @@ describe('sortTasks', () => {
 });
 
 describe('projectProgress', () => {
-  const project: Project = { id: 'p', name: 'P', description: '', status: 'active', color: 'indigo', createdAt: '', updatedAt: '' };
+  const project: Project = {
+    id: 'p',
+    name: 'P',
+    description: '',
+    status: 'active',
+    color: 'indigo',
+    createdAt: '',
+    updatedAt: '',
+  };
   it('counts only the project tasks from real data', () => {
     const progress = projectProgress(project, tasks, '2026-01-08');
     expect(progress).toEqual({ total: 1, done: 0, open: 1, ratio: 0, overdue: 1 });
@@ -53,8 +100,22 @@ describe('overdue', () => {
 
 describe('search', () => {
   const notes: Note[] = [
-    { id: 'n1', title: 'Meeting', body: 'Discussed WebXR hands', projectId: null, createdAt: '', updatedAt: '2026-01-02' },
-    { id: 'n2', title: 'Groceries', body: 'milk', projectId: 'p', createdAt: '', updatedAt: '2026-01-03' },
+    {
+      id: 'n1',
+      title: 'Meeting',
+      body: 'Discussed WebXR hands',
+      projectId: null,
+      createdAt: '',
+      updatedAt: '2026-01-02',
+    },
+    {
+      id: 'n2',
+      title: 'Groceries',
+      body: 'milk',
+      projectId: 'p',
+      createdAt: '',
+      updatedAt: '2026-01-03',
+    },
   ];
   it('searches note titles and bodies, newest first', () => {
     expect(searchNotes(notes, 'webxr').map((n) => n.id)).toEqual(['n1']);
@@ -62,8 +123,28 @@ describe('search', () => {
     expect(searchNotes(notes, '', 'p').map((n) => n.id)).toEqual(['n2']);
   });
   const research: ResearchItem[] = [
-    { id: 'r1', title: 'Spec', url: 'https://immersive-web.github.io/', summary: '', tags: ['webxr', 'spec'], projectId: null, noteId: null, createdAt: '', updatedAt: '1' },
-    { id: 'r2', title: 'Blog', url: null, summary: 'hand tracking tips', tags: ['webxr'], projectId: null, noteId: null, createdAt: '', updatedAt: '2' },
+    {
+      id: 'r1',
+      title: 'Spec',
+      url: 'https://immersive-web.github.io/',
+      summary: '',
+      tags: ['webxr', 'spec'],
+      projectId: null,
+      noteId: null,
+      createdAt: '',
+      updatedAt: '1',
+    },
+    {
+      id: 'r2',
+      title: 'Blog',
+      url: null,
+      summary: 'hand tracking tips',
+      tags: ['webxr'],
+      projectId: null,
+      noteId: null,
+      createdAt: '',
+      updatedAt: '2',
+    },
   ];
   it('searches research by text, url and tag', () => {
     expect(searchResearch(research, 'github').map((r) => r.id)).toEqual(['r1']);

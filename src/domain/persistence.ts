@@ -87,7 +87,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * Normalise any JSON payload (persisted or imported) into a valid workspace.
  * Every record is coerced individually so one corrupt item never loses the rest.
  */
-export function normalizeWorkspace(payload: unknown, now = new Date().toISOString()): {
+export function normalizeWorkspace(
+  payload: unknown,
+  now = new Date().toISOString(),
+): {
   data: WorkspaceData;
   dropped: number;
 } {
@@ -96,9 +99,13 @@ export function normalizeWorkspace(payload: unknown, now = new Date().toISOStrin
   let dropped = 0;
   if (!isRecord(root)) return { data, dropped: 0 };
 
-  const list = (key: string): unknown[] => (Array.isArray(root[key]) ? (root[key] as unknown[]) : []);
+  const list = (key: string): unknown[] =>
+    Array.isArray(root[key]) ? (root[key] as unknown[]) : [];
   const seen = new Set<string>();
-  const take = <T extends { id: string }>(items: unknown[], coerce: (v: unknown) => T | null): T[] => {
+  const take = <T extends { id: string }>(
+    items: unknown[],
+    coerce: (v: unknown) => T | null,
+  ): T[] => {
     const out: T[] = [];
     for (const item of items) {
       const rec = coerce(item);
@@ -152,13 +159,21 @@ export function loadWorkspace(storage: StorageAdapter): LoadReport {
     };
   }
   if (!isRecord(parsed)) {
-    return { data: emptyWorkspace(), dropped: 0, fresh: false, error: 'Stored workspace had an unexpected shape.' };
+    return {
+      data: emptyWorkspace(),
+      dropped: 0,
+      fresh: false,
+      error: 'Stored workspace had an unexpected shape.',
+    };
   }
   const { data, dropped } = normalizeWorkspace(migrate(parsed));
   return { data, dropped, fresh: false };
 }
 
-export function serializeWorkspace(data: WorkspaceData, savedAt = new Date().toISOString()): string {
+export function serializeWorkspace(
+  data: WorkspaceData,
+  savedAt = new Date().toISOString(),
+): string {
   const envelope: PersistedWorkspace = { schemaVersion: SCHEMA_VERSION, savedAt, data };
   return JSON.stringify(envelope);
 }
