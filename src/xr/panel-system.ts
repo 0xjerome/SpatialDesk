@@ -199,6 +199,11 @@ export class WorkspacePanelSystem extends createSystem({}) {
     }
   }
 
+  /** Focus the quick-add text field (raises the system keyboard on a headset). */
+  focusQuickAdd(): void {
+    this.main?.getElementById<HorizonInput>('quick-input')?.input?.focus();
+  }
+
   detailPrimary(): void {
     const sel = this.selected.peek();
     if (!sel) return;

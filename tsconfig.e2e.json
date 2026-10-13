@@ -7,7 +7,7 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node", "@types/webxr"]
   },
   "include": ["tests/e2e/**/*.ts", "playwright.config.ts"]
 }

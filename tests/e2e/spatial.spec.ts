@@ -27,6 +27,8 @@ type XrWindow = Window & {
         showSection: (s: string) => void;
         activateRow: (i: number) => void;
         toggleRow: (i: number) => void;
+        quickAdd: () => void;
+        focusQuickAdd: () => void;
         exit: () => void;
         element: (
           panel: 'main' | 'detail',
@@ -141,6 +143,19 @@ test.describe('spatial workspace', () => {
       (window as unknown as XrWindow).__spatialdesk.xr.panels!.toggleRow(0),
     );
     expect(await text('main', 'status')).toContain('Completed "Pack the headset"');
+    // Quick add: the UIKit text field is backed by a real DOM input, so typing
+    // works with a keyboard here and with the system keyboard on a headset.
+    await page.evaluate(() =>
+      (window as unknown as XrWindow).__spatialdesk.xr.panels!.focusQuickAdd(),
+    );
+    await page.keyboard.type('Charge the headset');
+    await page.evaluate(() => (window as unknown as XrWindow).__spatialdesk.xr.panels!.quickAdd());
+    expect(await text('main', 'status')).toContain('Added "Charge the headset"');
+    expect(
+      await page.evaluate(() =>
+        (window as unknown as XrWindow).__spatialdesk.store.tasks.value.map((t) => t.title),
+      ),
+    ).toContain('Charge the headset');
     // The shared store changed, so the 2D app reflects it after leaving the preview.
     await page.getByTestId('xr-overlay-back').click();
     await openApp(page, '#/tasks');
