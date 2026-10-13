@@ -41,7 +41,7 @@ export class LocalStorageAdapter implements StorageAdapter {
   readonly kind = 'local' as const;
   constructor(
     private readonly storage: Storage,
-    private readonly key = STORAGE_KEY,
+    readonly key = STORAGE_KEY,
   ) {}
   read(): string | null {
     return this.storage.getItem(this.key);

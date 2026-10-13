@@ -29,9 +29,28 @@ server.listen(port, host, () => {
   );
 });
 
-for (const signal of ['SIGINT', 'SIGTERM']) {
-  process.on(signal, () => {
-    server.close(() => process.exit(0));
-    setTimeout(() => process.exit(0), 2000).unref();
-  });
+let shuttingDown = false;
+/**
+ * @param {string} reason
+ * @param {number} [code]
+ */
+function shutdown(reason, code = 0) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.info(`[server] shutting down (${reason})`);
+  server.close(() => process.exit(code));
+  // Drop idle keep-alive sockets so close() can finish, then hard-exit as a backstop.
+  server.closeIdleConnections?.();
+  setTimeout(() => {
+    server.closeAllConnections?.();
+    process.exit(code);
+  }, 5000).unref();
 }
+for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => shutdown(signal));
+process.on('uncaughtException', (error) => {
+  console.error('[server] uncaught exception', error);
+  shutdown('uncaughtException', 1);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[server] unhandled rejection', reason);
+});

@@ -5,6 +5,7 @@ import {
   loadWorkspace,
   normalizeWorkspace,
   saveWorkspace,
+  STORAGE_KEY,
   type LoadReport,
   type StorageAdapter,
 } from './persistence';
@@ -23,6 +24,8 @@ import {
 
 export interface StoreOptions {
   storage?: StorageAdapter;
+  /** Reload when another browser tab writes the same storage key. Default true. */
+  crossTab?: boolean;
   /** Delay before writing to storage, so rapid edits coalesce. 0 = synchronous. */
   saveDelayMs?: number;
   now?: () => string;
@@ -52,6 +55,8 @@ export class WorkspaceStore {
   readonly lastError = signal<string | null>(null);
   readonly lastSavedAt = signal<string | null>(null);
   readonly loadReport = signal<LoadReport | null>(null);
+  /** Incremented when another tab wrote the workspace and this tab reloaded it. */
+  readonly externalUpdates = signal(0);
 
   /** Open (not done) tasks, newest first. */
   readonly openTasks: ReadonlySignal<Task[]>;
@@ -61,6 +66,7 @@ export class WorkspaceStore {
   private readonly now: () => string;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private dirty = false;
+  private detachCrossTab: (() => void) | null = null;
 
   constructor(options: StoreOptions = {}) {
     this.storage = options.storage ?? createDefaultStorage();
@@ -68,6 +74,32 @@ export class WorkspaceStore {
     this.now = options.now ?? nowIso;
     this.openTasks = computed(() => this.tasks.value.filter((t) => t.status !== 'done'));
     this.load();
+    if (options.crossTab !== false) this.attachCrossTabSync();
+  }
+
+  /**
+   * Keep this tab in sync when another tab of the same origin saves the
+   * workspace. Unsaved local edits are kept and win when they flush
+   * (last writer wins); a tab with nothing pending simply reloads.
+   */
+  private attachCrossTabSync(): void {
+    if (typeof window === 'undefined' || this.storage.kind !== 'local') return;
+    const key = (this.storage as { key?: string }).key ?? STORAGE_KEY;
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== key && event.key !== null) return;
+      if (this.dirty) return;
+      this.load();
+      this.externalUpdates.value += 1;
+    };
+    window.addEventListener('storage', onStorage);
+    this.detachCrossTab = () => window.removeEventListener('storage', onStorage);
+  }
+
+  /** Remove listeners (tests and hot reload). */
+  dispose(): void {
+    this.detachCrossTab?.();
+    this.detachCrossTab = null;
+    if (this.saveTimer !== null) clearTimeout(this.saveTimer);
   }
 
   /* ----------------------------- lifecycle ----------------------------- */
@@ -99,7 +131,9 @@ export class WorkspaceStore {
       }
     } catch (error) {
       this.status.value = 'error';
-      this.lastError.value = `Changes could not be saved: ${(error as Error).message}`;
+      this.lastError.value = isQuotaError(error)
+        ? "Changes could not be saved: this browser's storage is full. Export your workspace and delete what you no longer need."
+        : `Changes could not be saved: ${(error as Error).message}`;
     }
   }
 
@@ -421,4 +455,16 @@ export class WorkspaceStore {
       this.flush();
     }, this.saveDelayMs);
   }
+}
+
+function isQuotaError(error: unknown): boolean {
+  if (typeof DOMException !== 'undefined' && error instanceof DOMException) {
+    return (
+      error.name === 'QuotaExceededError' ||
+      error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      error.code === 22 ||
+      error.code === 1014
+    );
+  }
+  return error instanceof Error && /quota/i.test(error.message);
 }

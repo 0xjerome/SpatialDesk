@@ -1,0 +1,22 @@
+# Render Blueprint for SpatialDesk AI (https://render.com/docs/blueprint-spec)
+# Deploys the Dockerfile as one web service: static client + /api on the same origin.
+services:
+  - type: web
+    name: spatialdesk-ai
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: '1'
+      - key: AI_RATE_LIMIT_PER_MINUTE
+        value: '20'
+      # Set in the Render dashboard (Environment > Secret); never committed.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-5-5
