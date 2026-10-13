@@ -8,6 +8,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 const APP_PORT = 8081;
 const API_PORT = 8787;
+export const PROD_PORT = 8790;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -31,6 +32,14 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       env: { PORT: String(API_PORT), ANTHROPIC_API_KEY: '' },
       timeout: 30_000,
+    },
+    {
+      // Production artefact: built client served by the Node server over HTTP.
+      command: 'npm run build && node server/index.js',
+      url: `http://127.0.0.1:${PROD_PORT}/api/health`,
+      reuseExistingServer: !process.env.CI,
+      env: { PORT: String(PROD_PORT), ANTHROPIC_API_KEY: '' },
+      timeout: 180_000,
     },
     {
       command: 'npx vite --port 8081 --strictPort',

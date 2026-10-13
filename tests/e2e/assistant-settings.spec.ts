@@ -143,13 +143,11 @@ test.describe('settings', () => {
   test('rejects an invalid import file', async ({ page }) => {
     await resetWorkspace(page);
     await openApp(page, '#/settings');
-    await page
-      .getByTestId('import-file')
-      .setInputFiles({
-        name: 'bad.json',
-        mimeType: 'application/json',
-        buffer: Buffer.from('{not json'),
-      });
+    await page.getByTestId('import-file').setInputFiles({
+      name: 'bad.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from('{not json'),
+    });
     await expect(page.getByTestId('toast')).toContainText('not a valid SpatialDesk export');
   });
 });

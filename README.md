@@ -143,7 +143,7 @@ Run on 2026-10-13 in a Linux container (no GPU, no headset):
 - **Immersive bundle size.** `@iwsdk/core` with the Horizon kit pulls in the full Lucide icon set and MSDF fonts (about 6.5 MB raw, 1.7 MB gzip). It is loaded only when you open the Spatial view.
 - **Controller models** are fetched from `cdn.jsdelivr.net` at session start; without internet access controllers still work but render without a model.
 - **Local-only data.** There is no sync between devices.
-- **Dependency advisories.** `npm audit` reports advisories in development-only packages (`vitest`/`tinypool`, and `sharp` pulled by `@iwsdk/vite-plugin-dev`). Neither ships in the production server or the client bundle. Upgrading `vitest` to a major that clears the advisory is tracked as follow-up.
+- **Live assistant calls are untested here.** The proxy, validation and error handling are covered with a fake provider; no request was made to Anthropic in this environment because no API key was available.
 - **The assistant needs a server.** Static hosting alone runs everything except AI features, which then show the "not configured" state.
 
 ## Project layout
