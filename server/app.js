@@ -5,6 +5,7 @@
  * `node server/index.js`.
  */
 import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createGzip } from 'node:zlib';
 import { createServer } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,6 +43,26 @@ const MIME = {
 };
 
 const MAX_BODY_BYTES = 256 * 1024;
+
+/** Text-like types worth compressing on the fly (images, fonts and audio are already compressed). */
+const COMPRESSIBLE = new Set([
+  'text/html',
+  'text/javascript',
+  'text/css',
+  'application/json',
+  'application/manifest+json',
+  'image/svg+xml',
+  'model/gltf+json',
+  'text/plain',
+  'application/wasm',
+]);
+
+/** @param {import('node:http').IncomingMessage} req */
+function acceptsGzip(req) {
+  const header = req.headers['accept-encoding'];
+  const value = Array.isArray(header) ? header.join(',') : (header ?? '');
+  return /(^|,)\s*gzip\s*(;|,|$)/i.test(value);
+}
 
 /**
  * @param {{
@@ -245,16 +266,27 @@ export function createApp(options = {}) {
     }
     const ext = path.extname(filePath).toLowerCase();
     const immutable = /^assets\//.test(path.relative(distDir, filePath).replace(/\\/g, '/'));
-    res.writeHead(200, {
-      'Content-Type': MIME[ext] ?? 'application/octet-stream',
+    const contentType = MIME[ext] ?? 'application/octet-stream';
+    const size = statSync(filePath).size;
+    const gzip =
+      size > 1024 && COMPRESSIBLE.has(contentType.split(';')[0] ?? '') && acceptsGzip(req);
+    /** @type {Record<string, string | number>} */
+    const headers = {
+      'Content-Type': contentType,
       'Cache-Control': immutable ? 'public, max-age=31536000, immutable' : 'no-cache',
-      'Content-Length': statSync(filePath).size,
-    });
+      Vary: 'Accept-Encoding',
+    };
+    if (gzip) headers['Content-Encoding'] = 'gzip';
+    else headers['Content-Length'] = size;
+    res.writeHead(200, headers);
     if (req.method === 'HEAD') {
       res.end();
       return;
     }
-    createReadStream(filePath).pipe(res);
+    const stream = createReadStream(filePath);
+    stream.on('error', () => res.destroy());
+    if (gzip) stream.pipe(createGzip({ level: 6 })).pipe(res);
+    else stream.pipe(res);
   }
 
   const server = createServer((req, res) => {

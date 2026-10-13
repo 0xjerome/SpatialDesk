@@ -20,7 +20,10 @@ describe('static hosting', () => {
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
     base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   });
-  afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
+  afterAll(() => {
+    server.closeAllConnections();
+    return new Promise<void>((resolve) => server.close(() => resolve()));
+  });
 
   it('serves the entry page with security headers', async () => {
     const res = await fetch(`${base}/`);
@@ -57,5 +60,46 @@ describe('static hosting', () => {
 
   it('rejects unsupported methods on static paths', async () => {
     expect((await fetch(`${base}/`, { method: 'DELETE' })).status).toBe(405);
+  });
+});
+
+describe('compression', () => {
+  let base = '';
+  let server: ReturnType<typeof createApp>['server'];
+  beforeAll(async () => {
+    const dist = mkdtempSync(path.join(tmpdir(), 'spatialdesk-dist-'));
+    mkdirSync(path.join(dist, 'assets'));
+    writeFileSync(path.join(dist, 'index.html'), '<!doctype html><title>x</title>');
+    writeFileSync(path.join(dist, 'assets', 'big-abc.js'), 'const x = 1;\n'.repeat(2000));
+    writeFileSync(path.join(dist, 'assets', 'pic-abc.png'), Buffer.alloc(4096, 1));
+    const app = createApp({ assistant: createAssistant({ apiKey: '' }), distDir: dist });
+    server = app.server;
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  });
+  afterAll(() => {
+    server.closeAllConnections();
+    return new Promise<void>((resolve) => server.close(() => resolve()));
+  });
+
+  it('gzips large text assets when the client accepts it', async () => {
+    const res = await fetch(`${base}/assets/big-abc.js`, {
+      headers: { 'accept-encoding': 'gzip' },
+    });
+    expect(res.headers.get('content-encoding')).toBe('gzip');
+    expect(res.headers.get('vary')).toBe('Accept-Encoding');
+    expect((await res.text()).length).toBe('const x = 1;\n'.repeat(2000).length);
+  });
+  it('sends identity bytes for binaries and for clients without gzip', async () => {
+    const png = await fetch(`${base}/assets/pic-abc.png`, {
+      headers: { 'accept-encoding': 'gzip' },
+    });
+    expect(png.headers.get('content-encoding')).toBeNull();
+    expect(png.headers.get('content-length')).toBe('4096');
+    const plain = await fetch(`${base}/assets/big-abc.js`, {
+      headers: { 'accept-encoding': 'identity' },
+    });
+    expect(plain.headers.get('content-encoding')).toBeNull();
+    expect(plain.headers.get('content-length')).toBe(String('const x = 1;\n'.repeat(2000).length));
   });
 });

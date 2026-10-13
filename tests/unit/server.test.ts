@@ -137,7 +137,10 @@ describe('HTTP app', () => {
     server = app.server;
     base = await listen(server);
   });
-  afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
+  afterAll(() => {
+    server.closeAllConnections();
+    return new Promise<void>((resolve) => server.close(() => resolve()));
+  });
 
   it('serves health and status', async () => {
     expect(await (await fetch(`${base}/api/health`)).json()).toMatchObject({ ok: true });
@@ -184,7 +187,10 @@ describe('HTTP app with a configured fake assistant', () => {
     server = app.server;
     base = await listen(server);
   });
-  afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
+  afterAll(() => {
+    server.closeAllConnections();
+    return new Promise<void>((resolve) => server.close(() => resolve()));
+  });
 
   const post = (
     body: unknown,

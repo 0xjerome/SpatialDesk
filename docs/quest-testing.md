@@ -5,6 +5,21 @@ experience can be called verified. Everything in the automated suite runs
 against the IWER emulator; none of it proves comfort, tracking quality or
 performance on real hardware.
 
+## What has been verified so far (emulator only)
+
+Run on 2026-10-13 with the IWER Quest 3 emulator injected by `@iwsdk/vite-plugin-dev` on localhost, driven by Playwright (`tests/e2e/spatial.spec.ts`). The emulator proves application logic, not device behaviour.
+
+| Check                | Emulator result                                                                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Capability detection | secure context, WebGL, `immersive-ar` and `immersive-vr` reported correctly; missing `navigator.xr` and a rejected `requestSession` produce visible, honest errors |
+| Enter mixed reality  | `immersive-ar` session starts, `environmentBlendMode` alpha-blend, two hands and two controllers present                                                           |
+| Panels               | both UIKit panels bind to stored data; tabs, paging, selection, detail actions and task completion update the shared store                                         |
+| Quick add            | typing into the UIKit text field and pressing Add creates a task; the field clears                                                                                 |
+| Exit and re-entry    | session ends through the panel's Exit handler, a second session starts cleanly, closing the view disposes the world and empties the container                      |
+| Data integrity       | tasks changed in XR are visible in the browser app afterwards                                                                                                      |
+
+Not verifiable in the emulator: hand-tracking comfort and accuracy, the system keyboard for the text field, Quest Browser speech recognition, frame rate, passthrough quality.
+
 ## Prerequisites
 
 - Meta Quest 2, 3, 3S or Pro with the Meta Quest Browser up to date.

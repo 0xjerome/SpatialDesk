@@ -54,7 +54,10 @@ describe('static hosting hardening', () => {
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
     base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   });
-  afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
+  afterAll(() => {
+    server.closeAllConnections();
+    return new Promise<void>((resolve) => server.close(() => resolve()));
+  });
 
   it('never serves dotfiles even when they exist in dist', async () => {
     expect((await fetch(`${base}/.env`)).status).toBe(404);

@@ -1,6 +1,7 @@
 # SpatialDesk AI
 
 [![CI](https://github.com/0xjerome/SpatialDesk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/0xjerome/SpatialDesk/actions/workflows/ci.yml)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/0xjerome/SpatialDesk)
 
 SpatialDesk AI is a spatial productivity workspace for Meta Quest and the browser. Tasks, notes, projects and research live in one local-first workspace that you can use as an ordinary web app or as hand-driven panels in mixed reality, built on WebXR and Meta's Immersive Web SDK (IWSDK).
 
@@ -128,7 +129,7 @@ Or with Docker: `docker build -t spatialdesk . && docker run -p 8787:8787 -e ANT
 
 `render.yaml` describes a single Docker web service with the health check on `/api/health`.
 
-1. Sign in to Render and choose **New > Blueprint**, then select this repository (branch `main`).
+1. Sign in to Render and press the **Deploy to Render** button above (or choose **New > Blueprint** and select this repository, branch `main`).
 2. Render reads `render.yaml`; when prompted, enter `ANTHROPIC_API_KEY` (leave it empty to run without the assistant).
 3. Deploy. The service gets an `https://<name>.onrender.com` URL with TLS, which satisfies WebXR's secure-context requirement.
 4. Open `/api/health` on the new URL; it returns `{"ok":true,...,"assistant":"configured"|"not_configured"}`.
@@ -178,6 +179,14 @@ public/scenes/     IWSDK scene JSON       public/ui/  UIKitML panels
 tests/unit/        Vitest                 tests/e2e/  Playwright
 docs/              Quest testing guide
 ```
+
+## Licence
+
+No licence file has been added yet, so the default "all rights reserved" applies until the maintainer chooses one. This is a pending decision, not an oversight to be filled in by contributors.
+
+## Meta VR Start
+
+Submission materials prepared from the verified state of the project are in [docs/meta-vr-start.md](docs/meta-vr-start.md). Nothing has been submitted to or approved by Meta.
 
 ## Maintainer
 
