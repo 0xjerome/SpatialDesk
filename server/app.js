@@ -50,6 +50,7 @@ const MAX_BODY_BYTES = 256 * 1024;
  *   rateLimitPerMinute?: number,
  *   allowedOrigins?: string[],
  *   version?: string,
+ *   trustProxy?: number,
  * }} options
  */
 export function createApp(options = {}) {
@@ -67,6 +68,11 @@ export function createApp(options = {}) {
         .filter(Boolean),
   );
   const version = options.version ?? process.env.npm_package_version ?? '0.0.0';
+  // Number of reverse-proxy hops in front of the server whose X-Forwarded-For
+  // entries can be trusted (0 = none; use the socket address). Hosts such as
+  // Render or Fly put exactly one proxy in front of the app.
+  const trustProxy = options.trustProxy ?? parseTrustProxy(process.env.TRUST_PROXY);
+  const startedAt = Date.now();
 
   /**
    * @param {import('node:http').IncomingMessage} req
@@ -101,7 +107,12 @@ export function createApp(options = {}) {
    */
   async function handleApi(req, res, url) {
     if (url.pathname === '/api/health' && req.method === 'GET') {
-      sendJson(res, 200, { ok: true, version });
+      sendJson(res, 200, {
+        ok: true,
+        version,
+        uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
+        assistant: assistant.configured ? 'configured' : 'not_configured',
+      });
       return;
     }
     if (url.pathname === '/api/ai/status' && req.method === 'GET') {
@@ -160,7 +171,7 @@ export function createApp(options = {}) {
       return;
     }
     // Only well-formed requests count against the per-client budget.
-    const verdict = limiter.hit(clientKey(req));
+    const verdict = limiter.hit(clientKey(req, trustProxy));
     if (!verdict.allowed) {
       res.setHeader('Retry-After', String(Math.ceil(verdict.retryAfterMs / 1000)));
       sendJson(res, 429, {
@@ -207,7 +218,18 @@ export function createApp(options = {}) {
       res.end('The client has not been built. Run `npm run build` first.');
       return;
     }
-    const relative = decodeURIComponent(url.pathname).replace(/^\/+/, '');
+    let relative;
+    try {
+      relative = decodeURIComponent(url.pathname).replace(/^\/+/, '');
+    } catch {
+      res.writeHead(400).end();
+      return;
+    }
+    // Never serve dotfiles or dot-directories (.env, .git, .well-known is not used).
+    if (relative.split('/').some((segment) => segment.startsWith('.'))) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Not found');
+      return;
+    }
     let filePath = path.resolve(distDir, relative || 'index.html');
     if (!filePath.startsWith(distDir + path.sep) && filePath !== distDir) {
       res.writeHead(403).end();
@@ -243,6 +265,11 @@ export function createApp(options = {}) {
       else res.end();
     });
   });
+  // Bound slow clients: headers within 15 s, whole request within 60 s; keep
+  // idle keep-alive sockets slightly longer than typical load-balancer timeouts.
+  server.headersTimeout = 15_000;
+  server.requestTimeout = 60_000;
+  server.keepAliveTimeout = 65_000;
   return { server, assistant, limiter };
 }
 
@@ -274,9 +301,35 @@ function readJson(req) {
   });
 }
 
-/** @param {import('node:http').IncomingMessage} req */
-function clientKey(req) {
-  return req.socket.remoteAddress ?? 'unknown';
+/**
+ * Identify the client for rate limiting. X-Forwarded-For is only consulted for
+ * the configured number of trusted proxy hops, so a client cannot spoof its
+ * way past the limiter by sending the header itself.
+ * @param {import('node:http').IncomingMessage} req
+ * @param {number} trustProxy
+ */
+export function clientKey(req, trustProxy = 0) {
+  const socketAddress = req.socket?.remoteAddress ?? 'unknown';
+  if (trustProxy <= 0) return socketAddress;
+  const header = req.headers['x-forwarded-for'];
+  const raw = Array.isArray(header) ? header.join(',') : (header ?? '');
+  const hops = raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (hops.length === 0) return socketAddress;
+  // The rightmost `trustProxy` entries were appended by proxies we trust; the
+  // entry just before them is the real client as seen by the first trusted proxy.
+  const index = hops.length - trustProxy;
+  return hops[index >= 0 ? index : 0] ?? socketAddress;
+}
+
+/** @param {string | undefined} value */
+export function parseTrustProxy(value) {
+  if (!value) return 0;
+  if (value === 'true') return 1;
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
 }
 
 /** @param {import('node:http').ServerResponse} res */
