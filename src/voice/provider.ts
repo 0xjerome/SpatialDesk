@@ -43,7 +43,11 @@ export interface SpeechProvider {
    * Listen for one utterance. Resolves with the final transcript, rejects with
    * a SpeechError. Calling `abort` rejects with code 'aborted'.
    */
-  listenOnce(options: { lang?: string; signal?: AbortSignal; onInterim?: (text: string) => void }): Promise<SpeechResult>;
+  listenOnce(options?: {
+    lang?: string;
+    signal?: AbortSignal;
+    onInterim?: (text: string) => void;
+  }): Promise<SpeechResult>;
 }
 
 /* ------------------------- Web Speech API types ------------------------- */
@@ -71,10 +75,13 @@ interface WebSpeechRecognition extends EventTarget {
 }
 type WebSpeechRecognitionCtor = new () => WebSpeechRecognition;
 
-export function getSpeechRecognitionCtor(win: unknown = globalThis): WebSpeechRecognitionCtor | null {
+export function getSpeechRecognitionCtor(
+  win: unknown = globalThis,
+): WebSpeechRecognitionCtor | null {
   if (typeof win !== 'object' || win === null) return null;
   const w = win as Record<string, unknown>;
-  const ctor = (w.SpeechRecognition ?? w.webkitSpeechRecognition) as WebSpeechRecognitionCtor | undefined;
+  const ctor = (w.SpeechRecognition ?? w.webkitSpeechRecognition) as
+    WebSpeechRecognitionCtor | undefined;
   return typeof ctor === 'function' ? ctor : null;
 }
 
@@ -128,10 +135,14 @@ export class WebSpeechProvider implements SpeechProvider {
     }
   }
 
-  listenOnce(options: { lang?: string; signal?: AbortSignal; onInterim?: (text: string) => void } = {}): Promise<SpeechResult> {
+  listenOnce(
+    options: { lang?: string; signal?: AbortSignal; onInterim?: (text: string) => void } = {},
+  ): Promise<SpeechResult> {
     const Ctor = this.ctor;
     if (!this.available || Ctor === null) {
-      return Promise.reject(new SpeechError('unsupported', this.unavailableReason ?? SPEECH_ERROR_MESSAGES.unsupported));
+      return Promise.reject(
+        new SpeechError('unsupported', this.unavailableReason ?? SPEECH_ERROR_MESSAGES.unsupported),
+      );
     }
     return new Promise<SpeechResult>((resolve, reject) => {
       const rec = new Ctor();
@@ -189,7 +200,11 @@ export class WebSpeechProvider implements SpeechProvider {
       try {
         rec.start();
       } catch (error) {
-        finish(() => reject(new SpeechError('unknown', (error as Error).message || SPEECH_ERROR_MESSAGES.unknown)));
+        finish(() =>
+          reject(
+            new SpeechError('unknown', (error as Error).message || SPEECH_ERROR_MESSAGES.unknown),
+          ),
+        );
       }
     });
   }
@@ -200,12 +215,18 @@ export class UnavailableSpeechProvider implements SpeechProvider {
   readonly name = 'none';
   readonly available = false;
   constructor(readonly unavailableReason: string = SPEECH_ERROR_MESSAGES.unsupported) {}
-  listenOnce(): Promise<SpeechResult> {
+  listenOnce(_options?: {
+    lang?: string;
+    signal?: AbortSignal;
+    onInterim?: (text: string) => void;
+  }): Promise<SpeechResult> {
     return Promise.reject(new SpeechError('unsupported', this.unavailableReason));
   }
 }
 
 export function createSpeechProvider(win: unknown = globalThis): SpeechProvider {
   const provider = new WebSpeechProvider(win);
-  return provider.available ? provider : new UnavailableSpeechProvider(provider.unavailableReason ?? undefined);
+  return provider.available
+    ? provider
+    : new UnavailableSpeechProvider(provider.unavailableReason ?? undefined);
 }

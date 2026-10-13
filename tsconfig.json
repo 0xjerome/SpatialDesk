@@ -15,7 +15,15 @@
     "isolatedModules": true,
     "noEmit": true,
     "skipLibCheck": true,
+    "allowJs": true,
     "types": ["@iwsdk/vite-plugin-dev/client", "vite/client", "@types/webxr", "vitest/globals"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "tests/unit/**/*.ts", "vite.config.ts", "vitest.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "tests/unit/**/*.ts",
+    "server/**/*.js",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ]
 }

@@ -74,7 +74,9 @@ export function isValidIsoDate(value: string): boolean {
  * prefixing https://, and only allows http(s) schemes so a saved link can never
  * be a javascript: or data: URL.
  */
-export function normalizeUrl(raw: string): { ok: true; url: string } | { ok: false; error: string } {
+export function normalizeUrl(
+  raw: string,
+): { ok: true; url: string } | { ok: false; error: string } {
   const value = raw.trim();
   if (value === '') return { ok: false, error: 'Enter a link.' };
   if (value.length > LIMITS.url) return { ok: false, error: 'Link is too long.' };
@@ -100,7 +102,8 @@ export function validateTask(input: TaskInput): ValidationResult<TaskDraft> {
   const title = cleanText(input.title);
   const description = cleanText(input.description ?? '');
   if (title === '') errors.title = 'Give the task a title.';
-  else if (title.length > LIMITS.title) errors.title = `Keep the title under ${LIMITS.title} characters.`;
+  else if (title.length > LIMITS.title)
+    errors.title = `Keep the title under ${LIMITS.title} characters.`;
   if (description.length > LIMITS.description)
     errors.description = `Keep the description under ${LIMITS.description} characters.`;
 
@@ -118,7 +121,14 @@ export function validateTask(input: TaskInput): ValidationResult<TaskDraft> {
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return {
     ok: true,
-    value: { title, description, status, priority, dueDate, projectId: optionalId(input.projectId) },
+    value: {
+      title,
+      description,
+      status,
+      priority,
+      dueDate,
+      projectId: optionalId(input.projectId),
+    },
   };
 }
 
@@ -127,8 +137,10 @@ export function validateNote(input: NoteInput): ValidationResult<NoteDraft> {
   const title = cleanText(input.title);
   const body = typeof input.body === 'string' ? input.body.replace(/\r\n/g, '\n') : '';
   if (title === '') errors.title = 'Give the note a title.';
-  else if (title.length > LIMITS.title) errors.title = `Keep the title under ${LIMITS.title} characters.`;
-  if (body.length > LIMITS.noteBody) errors.body = `Notes are limited to ${LIMITS.noteBody} characters.`;
+  else if (title.length > LIMITS.title)
+    errors.title = `Keep the title under ${LIMITS.title} characters.`;
+  if (body.length > LIMITS.noteBody)
+    errors.body = `Notes are limited to ${LIMITS.noteBody} characters.`;
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   return { ok: true, value: { title, body, projectId: optionalId(input.projectId) } };
 }
@@ -138,7 +150,8 @@ export function validateProject(input: ProjectInput): ValidationResult<ProjectDr
   const name = cleanText(input.name);
   const description = cleanText(input.description ?? '');
   if (name === '') errors.name = 'Give the project a name.';
-  else if (name.length > LIMITS.title) errors.name = `Keep the name under ${LIMITS.title} characters.`;
+  else if (name.length > LIMITS.title)
+    errors.name = `Keep the name under ${LIMITS.title} characters.`;
   if (description.length > LIMITS.description)
     errors.description = `Keep the description under ${LIMITS.description} characters.`;
   const status = input.status ?? 'active';
@@ -171,7 +184,8 @@ export function validateResearch(input: ResearchInput): ValidationResult<Researc
   const title = cleanText(input.title);
   const summary = cleanText(input.summary ?? '');
   if (title === '') errors.title = 'Give the research item a title.';
-  else if (title.length > LIMITS.title) errors.title = `Keep the title under ${LIMITS.title} characters.`;
+  else if (title.length > LIMITS.title)
+    errors.title = `Keep the title under ${LIMITS.title} characters.`;
   if (summary.length > LIMITS.summary)
     errors.summary = `Keep the summary under ${LIMITS.summary} characters.`;
   let url: string | null = null;
@@ -214,7 +228,9 @@ export function coerceTask(value: unknown, now: string): Task | null {
   const draft = validateTask({
     title: str(value.title),
     description: str(value.description),
-    status: TASK_STATUSES.includes(value.status as TaskStatus) ? (value.status as TaskStatus) : 'todo',
+    status: TASK_STATUSES.includes(value.status as TaskStatus)
+      ? (value.status as TaskStatus)
+      : 'todo',
     priority: TASK_PRIORITIES.includes(value.priority as TaskPriority)
       ? (value.priority as TaskPriority)
       : 'medium',
@@ -228,8 +244,7 @@ export function coerceTask(value: unknown, now: string): Task | null {
     ...draft.value,
     createdAt,
     updatedAt: isoOrNow(value.updatedAt, createdAt),
-    completedAt:
-      draft.value.status === 'done' ? isoOrNow(value.completedAt, createdAt) : null,
+    completedAt: draft.value.status === 'done' ? isoOrNow(value.completedAt, createdAt) : null,
   };
 }
 
@@ -242,7 +257,12 @@ export function coerceNote(value: unknown, now: string): Note | null {
   });
   if (!draft.ok) return null;
   const createdAt = isoOrNow(value.createdAt, now);
-  return { id: value.id, ...draft.value, createdAt, updatedAt: isoOrNow(value.updatedAt, createdAt) };
+  return {
+    id: value.id,
+    ...draft.value,
+    createdAt,
+    updatedAt: isoOrNow(value.updatedAt, createdAt),
+  };
 }
 
 export function coerceProject(value: unknown, now: string): Project | null {
@@ -253,11 +273,18 @@ export function coerceProject(value: unknown, now: string): Project | null {
     status: PROJECT_STATUSES.includes(value.status as ProjectStatus)
       ? (value.status as ProjectStatus)
       : 'active',
-    color: PROJECT_COLORS.includes(value.color as ProjectColor) ? (value.color as ProjectColor) : 'indigo',
+    color: PROJECT_COLORS.includes(value.color as ProjectColor)
+      ? (value.color as ProjectColor)
+      : 'indigo',
   });
   if (!draft.ok) return null;
   const createdAt = isoOrNow(value.createdAt, now);
-  return { id: value.id, ...draft.value, createdAt, updatedAt: isoOrNow(value.updatedAt, createdAt) };
+  return {
+    id: value.id,
+    ...draft.value,
+    createdAt,
+    updatedAt: isoOrNow(value.updatedAt, createdAt),
+  };
 }
 
 export function coerceResearch(value: unknown, now: string): ResearchItem | null {
@@ -266,11 +293,18 @@ export function coerceResearch(value: unknown, now: string): ResearchItem | null
     title: str(value.title),
     url: typeof value.url === 'string' ? value.url : null,
     summary: str(value.summary),
-    tags: Array.isArray(value.tags) ? value.tags.filter((t): t is string => typeof t === 'string') : [],
+    tags: Array.isArray(value.tags)
+      ? value.tags.filter((t): t is string => typeof t === 'string')
+      : [],
     projectId: optionalId(value.projectId),
     noteId: optionalId(value.noteId),
   });
   if (!draft.ok) return null;
   const createdAt = isoOrNow(value.createdAt, now);
-  return { id: value.id, ...draft.value, createdAt, updatedAt: isoOrNow(value.updatedAt, createdAt) };
+  return {
+    id: value.id,
+    ...draft.value,
+    createdAt,
+    updatedAt: isoOrNow(value.updatedAt, createdAt),
+  };
 }

@@ -10,13 +10,9 @@ import { defineConfig } from 'vite';
  */
 export default defineConfig(({ command }) => ({
   plugins: [
-    iwsdkDev({
-      // The IWER emulator is injected on localhost in dev only, so a real Quest
-      // browser keeps its native WebXR implementation.
-      emulator: { device: 'metaQuest3', activation: 'localhost', injectOnBuild: false },
-      // HTTPS is required for WebXR on a physical headset over the LAN.
-      https: process.env.SPATIALDESK_DEV_HTTPS === 'false' ? false : true,
-    }),
+    // Emulator and XR settings live in iwsdk.config.json (the project authority).
+    // HTTPS is required for WebXR on a physical headset over the LAN.
+    iwsdkDev({ https: process.env.SPATIALDESK_DEV_HTTPS === 'false' ? false : true }),
   ],
   esbuild: {
     target: 'esnext',
@@ -38,20 +34,10 @@ export default defineConfig(({ command }) => ({
     outDir: 'dist',
     sourcemap: command === 'build' && process.env.NODE_ENV !== 'production',
     target: 'esnext',
-    rollupOptions: {
-      input: './index.html',
-      output: {
-        manualChunks(id) {
-          if (id.includes('@iwsdk') || id.includes('super-three') || id.includes('/three/')) {
-            return 'iwsdk';
-          }
-          if (id.includes('@pmndrs') || id.includes('@drawcall')) {
-            return 'uikit';
-          }
-          return undefined;
-        },
-      },
-    },
+    rollupOptions: { input: './index.html' },
+    // The immersive runtime (three.js, IWSDK, UIKit) is loaded on demand from
+    // src/xr/world.ts; the warning threshold only applies to that chunk.
+    chunkSizeWarningLimit: 6000,
   },
   // @drawcall/uikitml otherwise pulls a second three/@pmndrs/uikit graph.
   // Duplicate component classes break instanceof checks inside uikit.
@@ -60,7 +46,13 @@ export default defineConfig(({ command }) => ({
   },
   optimizeDeps: {
     exclude: ['@babylonjs/havok'],
-    include: ['three', '@pmndrs/uikit', '@pmndrs/uikit-horizon', '@pmndrs/uikit-lucide', '@drawcall/uikitml'],
+    include: [
+      'three',
+      '@pmndrs/uikit',
+      '@pmndrs/uikit-horizon',
+      '@pmndrs/uikit-lucide',
+      '@drawcall/uikitml',
+    ],
     esbuildOptions: { target: 'esnext' },
   },
   publicDir: 'public',

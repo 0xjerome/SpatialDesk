@@ -21,7 +21,14 @@ describe('validateTask', () => {
     const r = validateTask({ title: '  Ship it  ' });
     expect(r).toEqual({
       ok: true,
-      value: { title: 'Ship it', description: '', status: 'todo', priority: 'medium', dueDate: null, projectId: null },
+      value: {
+        title: 'Ship it',
+        description: '',
+        status: 'todo',
+        priority: 'medium',
+        dueDate: null,
+        projectId: null,
+      },
     });
   });
   it('rejects impossible dates', () => {
@@ -57,7 +64,12 @@ describe('validateNote / validateProject', () => {
   });
   it('defaults project status and colour', () => {
     const r = validateProject({ name: 'P' });
-    expect(r.ok && r.value).toEqual({ name: 'P', description: '', status: 'active', color: 'indigo' });
+    expect(r.ok && r.value).toEqual({
+      name: 'P',
+      description: '',
+      status: 'active',
+      color: 'indigo',
+    });
   });
 });
 

@@ -119,7 +119,10 @@ export class WorkspaceStore {
       if (mode === 'replace') {
         this.applyData(data);
       } else {
-        const merge = <T extends { id: string }>(current: readonly T[], incoming: readonly T[]): T[] => {
+        const merge = <T extends { id: string }>(
+          current: readonly T[],
+          incoming: readonly T[],
+        ): T[] => {
           const map = new Map(current.map((r) => [r.id, r]));
           for (const r of incoming) map.set(r.id, r);
           return [...map.values()];
@@ -314,14 +317,20 @@ export class WorkspaceStore {
     batch(() => {
       this.projects.value = this.projects.value.filter((p) => p.id !== id);
       if (options.cascade) {
-        const noteIds = new Set(this.notes.value.filter((n) => n.projectId === id).map((n) => n.id));
+        const noteIds = new Set(
+          this.notes.value.filter((n) => n.projectId === id).map((n) => n.id),
+        );
         this.tasks.value = this.tasks.value.filter((t) => t.projectId !== id);
         this.notes.value = this.notes.value.filter((n) => n.projectId !== id);
         this.research.value = this.research.value
           .filter((r) => r.projectId !== id)
-          .map((r) => (r.noteId && noteIds.has(r.noteId) ? { ...r, noteId: null, updatedAt: now } : r));
+          .map((r) =>
+            r.noteId && noteIds.has(r.noteId) ? { ...r, noteId: null, updatedAt: now } : r,
+          );
       } else {
-        const detach = <T extends { projectId: string | null; updatedAt: string }>(rows: readonly T[]): T[] =>
+        const detach = <T extends { projectId: string | null; updatedAt: string }>(
+          rows: readonly T[],
+        ): T[] =>
           rows.map((r) => (r.projectId === id ? { ...r, projectId: null, updatedAt: now } : r));
         this.tasks.value = detach(this.tasks.value);
         this.notes.value = detach(this.notes.value);
@@ -380,7 +389,10 @@ export class WorkspaceStore {
 
   /* ------------------------------ internals ---------------------------- */
 
-  private checkRefs(projectId: string | null, noteId: string | null): { ok: false; errors: Record<string, string> } | null {
+  private checkRefs(
+    projectId: string | null,
+    noteId: string | null,
+  ): { ok: false; errors: Record<string, string> } | null {
     if (projectId !== null && !this.getProject(projectId)) {
       return { ok: false, errors: { projectId: 'That project no longer exists.' } };
     }

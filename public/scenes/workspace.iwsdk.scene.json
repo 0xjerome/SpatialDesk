@@ -1,0 +1,73 @@
+{
+  "version": "iwsdk.scene.v1",
+  "units": "meters",
+  "components": {
+    "com.iwsdk.components.DomeGradient": {
+      "sky": [0.07, 0.09, 0.16, 1],
+      "equator": [0.12, 0.15, 0.26, 1],
+      "ground": [0.05, 0.06, 0.1, 1],
+      "intensity": 1
+    },
+    "com.iwsdk.components.IBLGradient": {
+      "sky": [0.75, 0.8, 0.95, 1],
+      "equator": [0.6, 0.65, 0.8, 1],
+      "ground": [0.35, 0.36, 0.42, 1],
+      "intensity": 1
+    }
+  },
+  "resources": {},
+  "nodes": [
+    {
+      "id": "workspace-handle",
+      "name": "Workspace Panel Handle",
+      "metadata": { "iwsdk.validation": { "allowFloating": true } },
+      "content": { "type": "asset", "asset": "panel-handle" },
+      "transform": { "position": [-0.2, 1.72, -1.05], "rotationDeg": [0, 12, 0] },
+      "components": {
+        "RayInteractable": {},
+        "DistanceGrabbable": {
+          "movementMode": "MoveFromTarget",
+          "translate": true,
+          "rotate": true,
+          "scale": false,
+          "returnToOrigin": false
+        }
+      },
+      "children": [
+        {
+          "id": "workspace-panel",
+          "name": "Workspace Panel",
+          "content": { "type": "asset", "asset": "workspace-panel" },
+          "transform": { "position": [0, -0.33, 0], "scale": 0.11 },
+          "components": { "RayInteractable": {} }
+        }
+      ]
+    },
+    {
+      "id": "detail-handle",
+      "name": "Detail Panel Handle",
+      "metadata": { "iwsdk.validation": { "allowFloating": true } },
+      "content": { "type": "asset", "asset": "panel-handle" },
+      "transform": { "position": [0.5, 1.72, -1.05], "rotationDeg": [0, -16, 0] },
+      "components": {
+        "RayInteractable": {},
+        "DistanceGrabbable": {
+          "movementMode": "MoveFromTarget",
+          "translate": true,
+          "rotate": true,
+          "scale": false,
+          "returnToOrigin": false
+        }
+      },
+      "children": [
+        {
+          "id": "detail-panel",
+          "name": "Detail Panel",
+          "content": { "type": "asset", "asset": "detail-panel" },
+          "transform": { "position": [0, -0.3, 0], "scale": 0.11 },
+          "components": { "RayInteractable": {} }
+        }
+      ]
+    }
+  ]
+}

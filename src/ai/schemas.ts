@@ -6,7 +6,8 @@
 import type { TaskPriority } from '../domain/types';
 import { isValidIsoDate, TASK_PRIORITIES } from '../domain';
 
-export type AssistAction = 'organize_tasks' | 'draft_task_from_note' | 'summarize' | 'break_down_project';
+export type AssistAction =
+  'organize_tasks' | 'draft_task_from_note' | 'summarize' | 'break_down_project';
 
 export interface TaskGroup {
   name: string;
@@ -85,10 +86,18 @@ function parseDraftedTask(v: unknown): DraftedTask | null {
   if (!title) return null;
   const p = priority(v.priority) ?? 'medium';
   const d = dateOrNull(v.dueDate);
-  return { title, description: str(v.description, 4000)?.trim() ?? '', priority: p, dueDate: d.ok ? d.value : null };
+  return {
+    title,
+    description: str(v.description, 4000)?.trim() ?? '',
+    priority: p,
+    dueDate: d.ok ? d.value : null,
+  };
 }
 
-export function parseOrganizeTasks(v: unknown, knownTaskIds: ReadonlySet<string>): OrganizeTasksResult | null {
+export function parseOrganizeTasks(
+  v: unknown,
+  knownTaskIds: ReadonlySet<string>,
+): OrganizeTasksResult | null {
   if (!isRecord(v) || !Array.isArray(v.groups) || !Array.isArray(v.suggestions)) return null;
   const groups: TaskGroup[] = [];
   const assigned = new Set<string>();
@@ -100,7 +109,8 @@ export function parseOrganizeTasks(v: unknown, knownTaskIds: ReadonlySet<string>
     // Only keep ids we actually own, and never list a task twice.
     const taskIds = ids.filter((id) => knownTaskIds.has(id) && !assigned.has(id));
     taskIds.forEach((id) => assigned.add(id));
-    if (taskIds.length > 0) groups.push({ name, taskIds, rationale: str(g.rationale, 400)?.trim() ?? '' });
+    if (taskIds.length > 0)
+      groups.push({ name, taskIds, rationale: str(g.rationale, 400)?.trim() ?? '' });
   }
   const suggestions: TaskSuggestion[] = [];
   for (const s of v.suggestions.slice(0, 100)) {
@@ -111,7 +121,12 @@ export function parseOrganizeTasks(v: unknown, knownTaskIds: ReadonlySet<string>
     const p = s.priority === null || s.priority === undefined ? null : priority(s.priority);
     if (!d.ok) continue;
     if (p === null && d.value === null) continue;
-    suggestions.push({ taskId, priority: p, dueDate: d.value, reason: str(s.reason, 300)?.trim() ?? '' });
+    suggestions.push({
+      taskId,
+      priority: p,
+      dueDate: d.value,
+      reason: str(s.reason, 300)?.trim() ?? '',
+    });
   }
   return { groups, suggestions };
 }
@@ -137,13 +152,18 @@ export function parseSummarize(v: unknown): SummarizeResult | null {
 }
 
 export function parseBreakDownProject(v: unknown): BreakDownProjectResult | null {
-  if (!isRecord(v) || !Array.isArray(v.steps) || v.steps.length === 0 || v.steps.length > 15) return null;
+  if (!isRecord(v) || !Array.isArray(v.steps) || v.steps.length === 0 || v.steps.length > 15)
+    return null;
   const steps: ProjectStep[] = [];
   for (const s of v.steps) {
     if (!isRecord(s)) return null;
     const title = str(s.title, 200)?.trim();
     if (!title) return null;
-    steps.push({ title, description: str(s.description, 4000)?.trim() ?? '', priority: priority(s.priority) ?? 'medium' });
+    steps.push({
+      title,
+      description: str(s.description, 4000)?.trim() ?? '',
+      priority: priority(s.priority) ?? 'medium',
+    });
   }
   return { steps };
 }

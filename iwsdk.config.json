@@ -34,6 +34,6 @@
     }
   },
   "dev": {
-    "emulator": { "device": "metaQuest3", "environment": "office_small" }
+    "emulator": { "device": "metaQuest3" }
   }
 }

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { parseBreakDownProject, parseDraftTaskFromNote, parseOrganizeTasks, parseSummarize } from '../../src/ai/schemas';
+import {
+  parseBreakDownProject,
+  parseDraftTaskFromNote,
+  parseOrganizeTasks,
+  parseSummarize,
+} from '../../src/ai/schemas';
 
 describe('parseOrganizeTasks', () => {
   const known = new Set(['a', 'b', 'c']);
@@ -16,7 +21,12 @@ describe('parseOrganizeTasks', () => {
           { taskId: 'nope', priority: 'high', dueDate: null, reason: '' },
           { taskId: 'b', priority: null, dueDate: '2026-02-30', reason: 'bad date' },
           { taskId: 'c', priority: null, dueDate: null, reason: 'nothing to change' },
-          { taskId: 'c', priority: 'urgent', dueDate: '2026-03-01', reason: 'bad prio but good date' },
+          {
+            taskId: 'c',
+            priority: 'urgent',
+            dueDate: '2026-03-01',
+            reason: 'bad prio but good date',
+          },
         ],
       },
       known,
@@ -39,21 +49,33 @@ describe('parseOrganizeTasks', () => {
 
 describe('parseDraftTaskFromNote', () => {
   it('fills defaults and validates dates', () => {
-    const r = parseDraftTaskFromNote({ tasks: [{ title: ' Call bank ', priority: 'nope', dueDate: 'soon' }], note: 1 });
-    expect(r).toEqual({ tasks: [{ title: 'Call bank', description: '', priority: 'medium', dueDate: null }], note: '' });
+    const r = parseDraftTaskFromNote({
+      tasks: [{ title: ' Call bank ', priority: 'nope', dueDate: 'soon' }],
+      note: 1,
+    });
+    expect(r).toEqual({
+      tasks: [{ title: 'Call bank', description: '', priority: 'medium', dueDate: null }],
+      note: '',
+    });
   });
   it('rejects a task without a title', () => {
     expect(parseDraftTaskFromNote({ tasks: [{ description: 'x' }] })).toBeNull();
   });
   it('allows an empty task list', () => {
-    expect(parseDraftTaskFromNote({ tasks: [], note: 'Nothing actionable' })?.note).toBe('Nothing actionable');
+    expect(parseDraftTaskFromNote({ tasks: [], note: 'Nothing actionable' })?.note).toBe(
+      'Nothing actionable',
+    );
   });
 });
 
 describe('parseSummarize / parseBreakDownProject', () => {
   it('requires a summary', () => {
     expect(parseSummarize({ summary: '', keyPoints: [] })).toBeNull();
-    expect(parseSummarize({ summary: 'ok' })).toEqual({ summary: 'ok', keyPoints: [], actionItems: [] });
+    expect(parseSummarize({ summary: 'ok' })).toEqual({
+      summary: 'ok',
+      keyPoints: [],
+      actionItems: [],
+    });
   });
   it('rejects non-string points', () => {
     expect(parseSummarize({ summary: 'ok', keyPoints: [1] })).toBeNull();

@@ -22,7 +22,10 @@ const NAV: Record<string, VoiceCommand & { kind: 'navigate' }> = {
 };
 
 function clean(s: string): string {
-  return s.replace(/\s+/g, ' ').replace(/[.?!,]+$/g, '').trim();
+  return s
+    .replace(/\s+/g, ' ')
+    .replace(/[.?!,]+$/g, '')
+    .trim();
 }
 
 function capitalize(s: string): string {
@@ -34,12 +37,18 @@ export function parseVoiceCommand(transcript: string): VoiceCommand {
   const lower = text.toLowerCase();
   if (lower === '') return { kind: 'unknown', transcript };
 
-  let m = /^(?:please )?(?:add|create|new|make)(?: a| an)? (?:task|to ?do|reminder)(?: to| called| named|:)? (.+)$/i.exec(text);
+  let m =
+    /^(?:please )?(?:add|create|new|make)(?: a| an)? (?:task|to ?do|reminder)(?: to| called| named|:)? (.+)$/i.exec(
+      text,
+    );
   if (m?.[1]) return { kind: 'create_task', title: capitalize(clean(m[1])) };
   m = /^(?:please )?remind me to (.+)$/i.exec(text);
   if (m?.[1]) return { kind: 'create_task', title: capitalize(clean(m[1])) };
 
-  m = /^(?:please )?(?:add|create|new|make|take|capture)(?: a| an)? note(?: called| titled| named|:)? (.+)$/i.exec(text);
+  m =
+    /^(?:please )?(?:add|create|new|make|take|capture)(?: a| an)? note(?: called| titled| named|:)? (.+)$/i.exec(
+      text,
+    );
   if (m?.[1]) {
     const body = clean(m[1]);
     const title = body.length > 60 ? `${body.slice(0, 57).trimEnd()}...` : body;
@@ -52,10 +61,14 @@ export function parseVoiceCommand(transcript: string): VoiceCommand {
     return { kind: 'create_note', title: capitalize(title), body: capitalize(body) };
   }
 
-  m = /^(?:please )?(?:complete|finish|mark(?: as)? (?:done|complete)|check off|done with)(?: the)?(?: task)? (.+)$/i.exec(text);
+  m =
+    /^(?:please )?(?:complete|finish|mark(?: as)? (?:done|complete)|check off|done with)(?: the)?(?: task)? (.+)$/i.exec(
+      text,
+    );
   if (m?.[1]) return { kind: 'complete_task', query: clean(m[1]).replace(/^(?:task )/i, '') };
   m = /^(?:please )?mark (.+?) (?:as )?(?:done|complete|completed|finished)$/i.exec(text);
-  if (m?.[1]) return { kind: 'complete_task', query: clean(m[1]).replace(/^(?:the )?(?:task )?/i, '') };
+  if (m?.[1])
+    return { kind: 'complete_task', query: clean(m[1]).replace(/^(?:the )?(?:task )?/i, '') };
 
   m = /^(?:please )?(?:search|find|look up|look for|show me)(?: for)? (.+)$/i.exec(text);
   if (m?.[1]) return { kind: 'search', query: clean(m[1]) };
@@ -80,7 +93,9 @@ export function findTaskByVoiceQuery<T extends { id: string; title: string; stat
   const open = tasks.filter((t) => t.status !== 'done');
   const exact = open.filter((t) => t.title.toLowerCase() === q);
   if (exact.length === 1) return { match: exact[0]!, candidates: exact };
-  const partial = open.filter((t) => t.title.toLowerCase().includes(q) || q.includes(t.title.toLowerCase()));
+  const partial = open.filter(
+    (t) => t.title.toLowerCase().includes(q) || q.includes(t.title.toLowerCase()),
+  );
   if (partial.length === 1) return { match: partial[0]!, candidates: partial };
   const words = q.split(' ').filter((w) => w.length > 2);
   const scored = open

@@ -23,9 +23,11 @@ export function filterTasks(tasks: readonly Task[], filter: TaskFilter): Task[] 
     const status = filter.status ?? 'all';
     if (status === 'open' && t.status === 'done') return false;
     if (status !== 'all' && status !== 'open' && t.status !== status) return false;
-    if (filter.priority && filter.priority !== 'all' && t.priority !== filter.priority) return false;
+    if (filter.priority && filter.priority !== 'all' && t.priority !== filter.priority)
+      return false;
     if (filter.projectId && filter.projectId !== 'all') {
-      if (filter.projectId === 'none' ? t.projectId !== null : t.projectId !== filter.projectId) return false;
+      if (filter.projectId === 'none' ? t.projectId !== null : t.projectId !== filter.projectId)
+        return false;
     }
     return matchesQuery([t.title, t.description], filter.query);
   });
@@ -44,7 +46,9 @@ export function sortTasks(tasks: readonly Task[], sort: TaskSort): Task[] {
       break;
     case 'priority':
       copy.sort(
-        (a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] || b.createdAt.localeCompare(a.createdAt),
+        (a, b) =>
+          PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] ||
+          b.createdAt.localeCompare(a.createdAt),
       );
       break;
     case 'title':
@@ -57,7 +61,11 @@ export function sortTasks(tasks: readonly Task[], sort: TaskSort): Task[] {
   return copy;
 }
 
-export function searchNotes(notes: readonly Note[], query: string | undefined, projectId?: string | 'all'): Note[] {
+export function searchNotes(
+  notes: readonly Note[],
+  query: string | undefined,
+  projectId?: string | 'all',
+): Note[] {
   return notes
     .filter((n) => (!projectId || projectId === 'all' ? true : n.projectId === projectId))
     .filter((n) => matchesQuery([n.title, n.body], query))
@@ -70,7 +78,9 @@ export function searchResearch(
   options: { projectId?: string | 'all'; tag?: string | null } = {},
 ): ResearchItem[] {
   return items
-    .filter((r) => (!options.projectId || options.projectId === 'all' ? true : r.projectId === options.projectId))
+    .filter((r) =>
+      !options.projectId || options.projectId === 'all' ? true : r.projectId === options.projectId,
+    )
     .filter((r) => (options.tag ? r.tags.includes(options.tag) : true))
     .filter((r) => matchesQuery([r.title, r.summary, r.url ?? '', ...r.tags], query))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
@@ -86,10 +96,16 @@ export interface ProjectProgress {
 }
 
 /** Compute progress from stored tasks only; never estimated. */
-export function projectProgress(project: Project, tasks: readonly Task[], today = todayIso()): ProjectProgress {
+export function projectProgress(
+  project: Project,
+  tasks: readonly Task[],
+  today = todayIso(),
+): ProjectProgress {
   const own = tasks.filter((t) => t.projectId === project.id);
   const done = own.filter((t) => t.status === 'done').length;
-  const overdue = own.filter((t) => t.status !== 'done' && t.dueDate !== null && t.dueDate < today).length;
+  const overdue = own.filter(
+    (t) => t.status !== 'done' && t.dueDate !== null && t.dueDate < today,
+  ).length;
   return {
     total: own.length,
     done,
@@ -118,5 +134,7 @@ export function todayIso(date = new Date()): string {
 export function collectTags(items: readonly ResearchItem[]): string[] {
   const counts = new Map<string, number>();
   for (const r of items) for (const t of r.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
-  return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([t]) => t);
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([t]) => t);
 }
