@@ -1,0 +1,58 @@
+{
+  "name": "spatialdesk-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "SpatialDesk AI - a mixed-reality productivity workspace for Meta Quest built on WebXR and Meta's Immersive Web SDK.",
+  "scripts": {
+    "dev": "vite",
+    "dev:managed": "iwsdk dev restart --open --foreground",
+    "dev:server": "node server/index.js",
+    "start": "node server/index.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p server/tsconfig.json",
+    "lint": "eslint .",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "build": "vite build",
+    "preview": "vite preview",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run build"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
+    "@iwsdk/core": "1.0.1",
+    "@pmndrs/uikit": "^1.0.74",
+    "@pmndrs/uikit-horizon": "^1.0.74",
+    "@pmndrs/uikit-lucide": "^1.0.74",
+    "@preact/signals": "^2.11.3",
+    "@preact/signals-core": "^1.12.1",
+    "preact": "^10.29.8",
+    "three": "npm:super-three@0.181.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@iwsdk/vite-plugin-dev": "1.0.1",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^22.15.0",
+    "@types/three": "^0.181.0",
+    "@types/webxr": "^0.5.24",
+    "@vitest/coverage-v8": "^3.2.7",
+    "eslint": "^9.30.0",
+    "jsdom": "^26.1.0",
+    "prettier": "^3.6.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.35.0",
+    "vite": "^7.1.4",
+    "vitest": "^3.2.0"
+  },
+  "overrides": {
+    "sharp": "0.35.4",
+    "three": "npm:super-three@0.181.0"
+  },
+  "engines": {
+    "node": ">=20.19.0 <21.0.0-0 || >=22.12.0 <23.0.0-0 || >=24.0.0"
+  }
+}
