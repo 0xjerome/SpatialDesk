@@ -1,5 +1,7 @@
 # SpatialDesk AI
 
+[![CI](https://github.com/0xjerome/SpatialDesk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/0xjerome/SpatialDesk/actions/workflows/ci.yml)
+
 SpatialDesk AI is a spatial productivity workspace for Meta Quest and the browser. Tasks, notes, projects and research live in one local-first workspace that you can use as an ordinary web app or as hand-driven panels in mixed reality, built on WebXR and Meta's Immersive Web SDK (IWSDK).
 
 **Status at a glance**
@@ -9,6 +11,10 @@ SpatialDesk AI is a spatial productivity workspace for Meta Quest and the browse
 | A. Working web application                           | Implemented and verified by automated browser tests                                                                                |
 | B. Immersive experience verified on a physical Quest | **Not yet verified.** Implemented and verified in the IWSDK/IWER emulator only; see [docs/quest-testing.md](docs/quest-testing.md) |
 | C. Published, reviewed or approved by Meta           | **No.** Nothing has been submitted                                                                                                 |
+
+![Workspace overview in the browser](docs/screenshots/workspace.png)
+
+![The spatial workspace rendered in the browser preview: list panel and detail panel](docs/screenshots/spatial-preview.png)
 
 ## What it does
 
@@ -105,7 +111,7 @@ Configuration lives in `iwsdk.config.json` (scene, XR features, emulator), `publ
 
 ## Persistence
 
-Records are stored under one versioned key in `localStorage` (`spatialdesk.workspace.v1`). Loading coerces each record individually, repairs dangling links and reports dropped records; a migration hook handles the pre-release shape. Writes are debounced and flushed on page hide. Private browsing or blocked storage falls back to in-memory for the session, and Settings says so.
+Records are stored under one versioned key in `localStorage` (`spatialdesk.workspace.v1`). Loading coerces each record individually, repairs dangling links and reports dropped records; a migration hook handles the pre-release shape. Writes are debounced and flushed on page hide. Private browsing or blocked storage falls back to in-memory for the session, and Settings says so. A full storage quota is reported with an explicit message instead of failing silently. When another tab of the same origin saves the workspace, a tab with no unsaved edits reloads it; a tab with pending edits keeps them and writes last (last writer wins).
 
 ## Deployment
 
@@ -117,6 +123,19 @@ ANTHROPIC_API_KEY=... PORT=8787 node server/index.js
 ```
 
 Or with Docker: `docker build -t spatialdesk . && docker run -p 8787:8787 -e ANTHROPIC_API_KEY=... spatialdesk`.
+
+### Render (one-click blueprint)
+
+`render.yaml` describes a single Docker web service with the health check on `/api/health`.
+
+1. Sign in to Render and choose **New > Blueprint**, then select this repository (branch `main`).
+2. Render reads `render.yaml`; when prompted, enter `ANTHROPIC_API_KEY` (leave it empty to run without the assistant).
+3. Deploy. The service gets an `https://<name>.onrender.com` URL with TLS, which satisfies WebXR's secure-context requirement.
+4. Open `/api/health` on the new URL; it returns `{"ok":true,...,"assistant":"configured"|"not_configured"}`.
+
+Behind any reverse proxy set `TRUST_PROXY` to the number of proxy hops (Render, Fly, a single nginx: `1`) so the per-client rate limit sees real client addresses; without it the limiter keys on the proxy's address. The blueprint sets it to `1`.
+
+No deployment has been performed from this repository yet; the blueprint and image are prepared, and the production server journey in the end-to-end suite exercises the same build that Render would run.
 
 Put HTTPS in front of the server (WebXR and the microphone require a secure context off-localhost). The server sets `Content-Security-Policy`, `Permissions-Policy` (`xr-spatial-tracking=(self)`, `microphone=(self)`), `X-Content-Type-Options`, `Referrer-Policy` and `X-Frame-Options`, serves hashed assets as immutable, and falls back to `index.html` for unknown extension-less paths. The CSP allows `connect-src` to `cdn.jsdelivr.net` because IWSDK loads controller models from the WebXR Input Profiles CDN.
 
@@ -159,3 +178,7 @@ public/scenes/     IWSDK scene JSON       public/ui/  UIKitML panels
 tests/unit/        Vitest                 tests/e2e/  Playwright
 docs/              Quest testing guide
 ```
+
+## Maintainer
+
+Jerome Ssenyonga ([@0xjerome](https://github.com/0xjerome)). Issues and pull requests are welcome at <https://github.com/0xjerome/SpatialDesk>.

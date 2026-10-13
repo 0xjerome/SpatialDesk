@@ -1,9 +1,21 @@
 {
   "name": "spatialdesk-ai",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
-  "type": "module",
   "description": "SpatialDesk AI - a mixed-reality productivity workspace for Meta Quest built on WebXR and Meta's Immersive Web SDK.",
+  "author": {
+    "name": "Jerome Ssenyonga",
+    "url": "https://github.com/0xjerome"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xjerome/SpatialDesk.git"
+  },
+  "homepage": "https://github.com/0xjerome/SpatialDesk#readme",
+  "bugs": {
+    "url": "https://github.com/0xjerome/SpatialDesk/issues"
+  },
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:managed": "iwsdk dev restart --open --foreground",
